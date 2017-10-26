@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block page_title %}
+CHOIX DU CAFE
+{% endblock page_title %}
+{% block extrasjs %}
+<script type="text/javascript">
+function importChoice(url,pk){
+    $("button").prop('disabled', true);
+    $.ajax({
+        type:"POST",
+        url:url,
+        data:"csrfmiddlewaretoken="+getCookie('csrftoken'),
+        success: function (data) {
+            console.log(data);
+            $(".import").show();
+            $(".import .add").text(data["added"]["count"]).parent().attr("data-content",toUL(data["added"]["names"]));
+            $(".import .idle").text(data["idle"]["count"]).parent().attr("data-content",toUL(data["idle"]["names"]));
+            $(".import .del").text(data["removed"]["count"]).parent().attr("data-content",toUL(data["removed"]["names"]));
+            $("button").prop('disabled', false);
+        },
+        error: function (data) {console.log(data);$("button").prop('disabled', false);}
+    });
+}
+function toUL(tab){
+    ret="<ul>";
+    if(tab.length==0)ret+="<li>"+("None")+"</li>";
+    for (i=0;i<tab.length;i++)
+        ret+="<li>"+tab[i]+"</li>";
+    ret+="</ul>";
+    return ret;
+}
+</script>
+{%endblock%}
+
+
+{% block content_main %}
+<div class="col-xs-12 col-lg-10 col-lg-offset-1 col-xl-8 col-xl-offset-2">
+<h1>Update coffee</h1>
+<button onclick="importChoice('{% url 'coffee:sync_coffee' %}');"
+        class="btn btn-default">Synchronize coffee</button>
+<br/>
+<span class="import" style="display:none;">
+    <span class="text-success"
+          data-toggle="popover"
+          data-html="true"
+          data-trigger="hover clic"
+          data-placement="bottom"
+          data-title="{'added choices'}"
+    ><span class="add"></span><b>+</b></span>&nbsp;
+    <span class="text-info"
+          data-toggle="popover"
+          data-html="true"
+          data-container="body"
+          data-trigger="hover clic"
+          data-title="{'unchanged choices'}"
+          data-placement="bottom"
+    ><span class="idle"></span>~</span>&nbsp;
+    <span class="text-danger"
+          data-toggle="popover"
+          data-html="true"
+          data-trigger="hover clic"
+          data-title="{'removed choices'}"
+          data-placement="bottom"
+    ><span class="del"></span>-</span>
+</span>
+<br/>
+<a role="button" class="btn btn-default pull-right" href="{% url 'coffee:index' %}"><i
+class="glyphicon glyphicon-plus"></i>Home</a>
+</div>
+{% endblock content_main %}

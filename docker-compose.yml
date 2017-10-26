@@ -1,0 +1,15 @@
+version: '2'
+services:
+  web:
+    env_file:
+      - ./script/default.env
+      - ./script/local-compiled.env
+    build: .
+    command: /usr/sbin/apachectl -DFOREGROUND
+    volumes:
+      - .:/code
+      - ./certs:/etc/apache2/ssl
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "${HTTPS_PORT_HOST}:443"
+      - "${HTTP_PORT_HOST}:80"

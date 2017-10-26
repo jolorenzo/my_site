@@ -1,0 +1,96 @@
+{% extends "coffee/base.html" %}
+{% block page_title %}
+CHOIX DU CAFE
+{% endblock page_title %}
+{% block extrasjs %}
+<script type="text/javascript">
+function importChoice(url,pk){
+    $("#c"+pk+" button").prop('disabled', true);
+    $.ajax({
+        type:"POST",
+        url:url,
+        data:"csrfmiddlewaretoken="+getCookie('csrftoken'),
+        success: function (data) {
+            console.log(data);
+            $("#c"+pk+" .import").show();
+            $("#c"+pk+" .import .add").text(data["added"]["count"]).parent().attr("data-content",toUL(data["added"]["names"]));
+            $("#c"+pk+" .import .idle").text(data["idle"]["count"]).parent().attr("data-content",toUL(data["idle"]["names"]));
+            $("#c"+pk+" .import .del").text(data["removed"]["count"]).parent().attr("data-content",toUL(data["removed"]["names"]));
+            $("#c"+pk+" button").attr("data-content",toUL(data["all"]["names"]));
+            $("#c"+pk+" button").prop('disabled', false);
+        },
+        error: function (data) {console.log(data);$("#c"+pk+" button").prop('disabled', false);}
+    });
+}
+function toUL(tab){
+    ret="<ul>";
+    if(tab.length==0)ret+="<li>"+gettext("None")+"</li>";
+    for (i=0;i<tab.length;i++)
+        ret+="<li>"+tab[i]+"</li>";
+    ret+="</ul>";
+    return ret;
+}
+</script>
+{%endblock%}
+
+
+{% block content_main %}
+<h1>Mise à jour de la liste de café</h1>
+<div class="col-xs-12 col-lg-10 col-lg-offset-1 col-xl-8 col-xl-offset-2">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <table class="table">
+                {%for o in objects%}
+                <tr id="c{{o.pk}}">
+                    <td>
+                        {{o.question_text}}
+                    </td>
+                    <td class="text-center">
+                        <button onclick="importChoice('{% url 'coffee:sync_choice' question_id=o.pk%}','{{o.pk}}');"
+                                class="btn btn-default"
+                                data-toggle="popover"
+                                data-html="true"
+                                data-container="body"
+                                data-trigger="hover"
+                                data-content="{% for f in o.choice_set.all %}<ul><li>{{f.choice_text}}</li></ul>{%empty%}<li>None</li>{%endfor%}"
+                        >
+                            <i class="octicon octicon-list-unordered"
+                               aria-hidden="true"></i>
+                            Synchroniser les choix
+                        </button>
+                        <br/>
+                        <span class="import" style="display:none;">
+                            <span class="text-success"
+                                  data-toggle="popover"
+                                  data-html="true"
+                                  data-trigger="hover clic"
+                                  data-placement="bottom"
+                                  data-title="{'added choices'}"
+                            ><span class="add"></span><b>+</b></span>&nbsp;
+                            <span class="text-info"
+                                  data-toggle="popover"
+                                  data-html="true"
+                                  data-container="body"
+                                  data-trigger="hover clic"
+                                  data-title="{'unchanged choices'}"
+                                  data-placement="bottom"
+                            ><span class="idle"></span>~</span>&nbsp;
+                            <span class="text-danger"
+                                  data-toggle="popover"
+                                  data-html="true"
+                                  data-trigger="hover clic"
+                                  data-title="{'removed choices'}"
+                                  data-placement="bottom"
+                            ><span class="del"></span>-</span>
+                        </span>
+                    </td>
+                </tr>
+                {%endfor%}
+            </table>
+            <br/>
+            <a role="button" class="btn btn-default pull-right" href="{% url 'coffee:index' %}"><i
+            class="glyphicon glyphicon-plus"></i>Accueil</a>
+        </div>
+    </div>
+</div>
+{% endblock content_main %}

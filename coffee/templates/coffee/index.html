@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+{% block page_title %}
+CHOIX DU CAFE
+{% endblock page_title %}
+{% block extrasjs %}
+{%endblock%}
+
+{% block extrahead %}
+{% endblock extrahead %}
+
+{% block content_main %}
+<div class="col-xs-12">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <table>
+                <tr>
+                    <th>Coffee</th>
+                    <th>Price/caps</th>
+                </tr>
+                {% for coffee in objects %}
+                <tr>
+                    <td>
+                        <a target="_blank" href="{{coffee.get_nespresso_product_url}}">{{ coffee.name }}</a></br>
+                    </td>
+                    <td>{{ coffee.price }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<!--<a href="{ url 'coffee:manage_coffee' %}"> Manage coffee</a>-->
+
+<br/>
+<a role="button" class="btn btn-default pull-left" href="{% url 'coffee:list_order' %}">Home</a>
+{% endblock content_main %}
+
+
+
+
+
+

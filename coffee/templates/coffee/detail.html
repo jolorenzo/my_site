@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+{% block page_title %}
+CHOIX DU CAFE
+{% endblock page_title %}
+{% block extrasjs %}
+<script type="text/javascript">
+function delContent(url,pk){
+    $.ajax({
+        type:"POST",
+        url:url,
+        data:"csrfmiddlewaretoken="+getCookie('csrftoken'),
+        success: function (data) {
+            console.log(data);
+            $("#c"+pk+" .import").show();
+            $("#c"+pk+" button").prop('disabled', false);
+        },
+        error: function (data) {console.log(data);$("#c"+pk+" button").prop('disabled', false);}
+    });
+}
+</script>
+{%endblock%}
+
+{% block extrahead %}
+{% endblock extrahead %}
+
+{% block content_main %}
+<h1>Your content order</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<div class="col-xs-12">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <table>
+                <tr>
+                    <th>Coffee</th>
+                    <th>Price</th>
+                    <th>Delete?</th>
+                </tr>
+                {% for content in objects %}
+                <tr>
+                    <td>
+                        {{ content.coffee.name }}
+                    </td>
+                    <!--<td>{{ content.quantity }}</td>-->
+                    <td>{{ content.get_temp_price }}</td>
+                    <td>
+                        <button onclick="delContent('{% url 'coffee:remove_coffee_of_your_content_order' content_id=content.pk%}','{{content.pk}}');"
+                                class="btn btn-default">X
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<br/>
+<div class="col-xs-12">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <form action="" method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <input type="submit" value="Submit"/>
+            </form>
+        </div>
+    </div>
+</div>
+<br/>
+<a role="button" class="btn btn-default pull-left" href="{% url 'coffee:list_order' %}">Home</a>
+{% endblock content_main %}

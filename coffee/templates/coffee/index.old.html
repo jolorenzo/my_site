@@ -1,0 +1,27 @@
+{% load static %}
+{% load i18n %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'coffee/style.css' %}" />
+
+{% if latest_question_list %}
+    <ul>
+    {% for question in latest_question_list %}
+        <li><a href="{% url 'coffee:detail' question.id %}">{{ question.question_text }}</a></li>
+    {% endfor %}
+    </ul>
+    <a href="{% url 'coffee:list' %}"> Gerer les questions</a>
+{% else %}
+    <p>No coffee are available.</p>
+{% endif %}
+
+
+
+
+
+<a href="{% url 'coffee:list_coffee' %}"> Manage coffee</a>
+
+
+
+
+
+

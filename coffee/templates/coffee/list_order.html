@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+{% block page_title %}
+CHOIX DU CAFE
+{% endblock page_title %}
+{% block extrasjs %}
+{%endblock%}
+
+{% block extrahead %}
+{% endblock extrahead %}
+
+{% block content_main %}
+<h1>List of coffee orders</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<div class="col-xs-12">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <table>
+                {% for order in objects %}
+                <tr>
+                    <td>
+                        <a href="{% url 'coffee:list_content_order' order.pk %}">Order n°{{ order.pk }}</a>
+                    </td>
+                    <td>{% if order.open %}open{% else %}close{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<br/>
+<a role="button" class="btn btn-default pull-left" href="{% url 'coffee:list_coffee' %}">List of coffee</a>
+{% endblock content_main %}
