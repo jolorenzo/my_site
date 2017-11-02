@@ -1,128 +1,86 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import datetime
+from django.test import TestCase, RequestFactory, override_settings
+from datetime import timedelta
+from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User, AnonymousUser
 
-from django.utils import timezone
-from django.test import TestCase
-from django.urls import reverse
-
-from .models import Question
-
-
-class QuestionMethodTests(TestCase):
-
-    def test_was_published_recently_with_future_question(self):
-        """
-        was_published_recently() should return False for questions whose
-        pub_date is in the future.
-        """
-        time = timezone.now() + datetime.timedelta(days=30)
-        future_question = Question(pub_date=time)
-        self.assertIs(future_question.was_published_recently(), False)
-
-    def test_was_published_recently_with_old_question(self):
-        """
-        was_published_recently() should return False for questions whose
-        pub_date is older than 1 day.
-        """
-        time = timezone.now() - datetime.timedelta(days=30)
-        old_question = Question(pub_date=time)
-        self.assertIs(old_question.was_published_recently(), False)
-
-    def test_was_published_recently_with_recent_question(self):
-        """
-        was_published_recently() should return True for questions whose
-        pub_date is within the last day.
-        """
-        time = timezone.now() - datetime.timedelta(hours=1)
-        recent_question = Question(pub_date=time)
-        self.assertIs(recent_question.was_published_recently(), True)
-
-def create_question(question_text, days):
-    """
-    Creates a question with the given `question_text` and published the
-    given number of `days` offset to now (negative for questions published
-    in the past, positive for questions that have yet to be published).
-    """
-    time = timezone.now() + datetime.timedelta(days=days)
-    return Question.objects.create(question_text=question_text, pub_date=time)
+from coffee.models import *
+from coffee.views import list_order
 
 
-class QuestionViewTests(TestCase):
-    def test_index_view_with_no_questions(self):
-        """
-        If no questions exist, an appropriate message should be displayed.
-        """
-        response = self.client.get(reverse('coffee:index'))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "No coffee are available.")
-        self.assertQuerysetEqual(response.context['latest_question_list'], [])
+class CoffeeTest(TestCase):
+    def setUp(self):
+        # Every test needs access to the request factory.
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            username='jacob', email='jacob@…', password='top_secret')
 
-    def test_index_view_with_a_past_question(self):
-        """
-        Questions with a pub_date in the past should be displayed on the
-        index page.
-        """
-        create_question(question_text="Past question.", days=-30)
-        response = self.client.get(reverse('coffee:index'))
-        self.assertQuerysetEqual(
-            response.context['latest_question_list'],
-            ['<Question: Past question.>']
-        )
-
-    def test_index_view_with_a_future_question(self):
-        """
-        Questions with a pub_date in the future should not be displayed on
-        the index page.
-        """
-        create_question(question_text="Future question.", days=30)
-        response = self.client.get(reverse('coffee:index'))
-        self.assertContains(response, "No coffee are available.")
-        self.assertQuerysetEqual(response.context['latest_question_list'], [])
-
-    def test_index_view_with_future_question_and_past_question(self):
-        """
-        Even if both past and future questions exist, only past questions
-        should be displayed.
-        """
-        create_question(question_text="Past question.", days=-30)
-        create_question(question_text="Future question.", days=30)
-        response = self.client.get(reverse('coffee:index'))
-        self.assertQuerysetEqual(
-            response.context['latest_question_list'],
-            ['<Question: Past question.>']
-        )
-
-    def test_index_view_with_two_past_questions(self):
-        """
-        The questions index page may display multiple questions.
-        """
-        create_question(question_text="Past question 1.", days=-30)
-        create_question(question_text="Past question 2.", days=-5)
-        response = self.client.get(reverse('coffee:index'))
-        self.assertQuerysetEqual(
-            response.context['latest_question_list'],
-            ['<Question: Past question 2.>', '<Question: Past question 1.>']
-        )
-        
-class QuestionIndexDetailTests(TestCase):
-    def test_detail_view_with_a_future_question(self):
-        """
-        The detail view of a question with a pub_date in the future should
-        return a 404 not found.
-        """
-        future_question = create_question(question_text='Future question.', days=5)
-        url = reverse('coffee:detail', args=(future_question.id,))
+    def test_dashboard_not_authenticated_user(self):
+        url = reverse('coffee:list_order')
         response = self.client.get(url)
-        self.assertEqual(response.status_code, 404)
+        self.assertTemplateNotUsed(response, 'coffee/list_order.html')
+        self.failUnlessEqual(response.status_code, 302)
 
-    def test_detail_view_with_a_past_question(self):
+    def test_dashboard_authenticated_user(self):
+        self.client.login(username='jacob', password='top_secret')
+        response = self.client.get(reverse('coffee:list_order'))
+        self.failUnlessEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'coffee/list_order.html')
+        self.client.logout()
+
+    def test_details(self):
+        # Create an instance of a GET request.
+        request = self.factory.get('coffee/list_order.html')
+
+        # Recall that middleware are not supported. You can simulate a
+        # logged-in user by setting request.user manually.
+        request.user = self.user
+
+        # Or you can simulate an anonymous user by setting request.user to
+        # an AnonymousUser instance.
+        request.user = AnonymousUser()
+
+        # Test my_view() as if it were deployed at /customer/details
+        response = list_order(request)
+        self.assertNotEquals(response.status_code, 200)
+
+
+class OrderTests(TestCase):
+    def test_est_recent_avec_futur_article(self):
         """
-        The detail view of a question with a pub_date in the past should
-        display the question's text.
+        Vérifie si la méthode est_recent d'un Article ne
+        renvoie pas True si l'Article a sa date de publication
+        dans le futur.
         """
-        past_question = create_question(question_text='Past Question.', days=-5)
-        url = reverse('coffee:detail', args=(past_question.id,))
-        response = self.client.get(url)
-        self.assertContains(response, past_question.question_text)
+
+        futur_order = Order(ordered_date=datetime.now() + timedelta(days=20))
+        # Il n'y a pas besoin de remplir tous les champs, ni de sauvegarder
+        self.assertEqual(futur_order.est_recent(), False)
+
+
+class SearchFormTestCase(TestCase):
+    def test_empty_get(self):
+        response = self.client.get('/en/dev/search/', HTTP_HOST='docs.djangoproject.dev:8000')
+        self.assertNotEquals(response.status_code, 200)
+
+
+class MultiDomainTestCase(TestCase):
+    @override_settings(ALLOWED_HOSTS=['otherserver'])
+    def test_other_domain(self):
+        response = self.client.get('http://otherserver/foo/bar/')
+
+
+class LogInTest(TestCase):
+    def setUp(self):
+        self.credentials = {
+            'username': 'testuser',
+            'password': 'secret'}
+        User.objects.create_user(**self.credentials)
+
+    def test_login(self):
+        # send login data
+        response = self.client.post('/accounts/login/', self.credentials, follow=True)
+        # should be logged in now
+        self.assertTrue(response.context['user'].is_authenticated)

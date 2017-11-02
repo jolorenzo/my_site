@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 {% block page_title %}
-CHOIX DU CAFE
+MANAGE COFFEE
 {% endblock page_title %}
+{% block title %}
+MANAGE COFFEE
+{% endblock title %}
+{% block sub_title %}{% endblock sub_title %}
 {% block extrasjs %}
 <script type="text/javascript">
 function importChoice(url,pk){
@@ -34,9 +38,8 @@ function toUL(tab){
 
 
 {% block content_main %}
-<div class="col-xs-12 col-lg-10 col-lg-offset-1 col-xl-8 col-xl-offset-2">
-<h1>Update coffee</h1>
-<button onclick="importChoice('{% url 'coffee:sync_coffee' %}');"
+<div class="col-xs-12">
+<button onclick="importChoice('{% url 'coffee:manage_coffee' %}');"
         class="btn btn-default">Synchronize coffee</button>
 <br/>
 <span class="import" style="display:none;">
@@ -63,8 +66,5 @@ function toUL(tab){
           data-placement="bottom"
     ><span class="del"></span>-</span>
 </span>
-<br/>
-<a role="button" class="btn btn-default pull-right" href="{% url 'coffee:index' %}"><i
-class="glyphicon glyphicon-plus"></i>Home</a>
 </div>
 {% endblock content_main %}

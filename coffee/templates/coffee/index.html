@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
 {% block page_title %}
-CHOIX DU CAFE
+LIST OF COFFEE
 {% endblock page_title %}
+{% block title %}
+LIST OF COFFEE
+{% endblock title %}
+{% block sub_title %}{% endblock sub_title %}
 {% block extrasjs %}
 {%endblock%}
 
@@ -13,10 +17,11 @@ CHOIX DU CAFE
 <div class="col-xs-12">
     <div class="panel panel-default">
         <div class="panel-body">
-            <table>
+            <table class="coffee-table">
                 <tr>
                     <th>Coffee</th>
-                    <th>Price/caps</th>
+                    <th>Price per caps</th>
+                    <th>Price per box</th>
                 </tr>
                 {% for coffee in objects %}
                 <tr>
@@ -24,17 +29,17 @@ CHOIX DU CAFE
                         <a target="_blank" href="{{coffee.get_nespresso_product_url}}">{{ coffee.name }}</a></br>
                     </td>
                     <td>{{ coffee.price }}</td>
+                    <td>{{ coffee.get_price_per_box }}</td>
                 </tr>
                 {% endfor %}
             </table>
         </div>
     </div>
+
+
+    <!--<a href="{ url 'coffee:manage_coffee' %}"> Manage coffee</a>-->
+
 </div>
-
-<!--<a href="{ url 'coffee:manage_coffee' %}"> Manage coffee</a>-->
-
-<br/>
-<a role="button" class="btn btn-default pull-left" href="{% url 'coffee:list_order' %}">Home</a>
 {% endblock content_main %}
 
 

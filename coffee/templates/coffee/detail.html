@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
 {% block page_title %}
-CHOIX DU CAFE
+YOUR CONTENT ORDER
 {% endblock page_title %}
+{% block title %}
+YOUR CONTENT ORDER
+{% endblock title %}
+{% block sub_title %}{% endblock sub_title %}
 {% block extrasjs %}
 <script type="text/javascript">
 function delContent(url,pk){
@@ -25,17 +29,16 @@ function delContent(url,pk){
 {% endblock extrahead %}
 
 {% block content_main %}
-<h1>Your content order</h1>
-
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
 <div class="col-xs-12">
     <div class="panel panel-default">
         <div class="panel-body">
-            <table>
+            <table class="coffee-table">
                 <tr>
                     <th>Coffee</th>
-                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Price (€)</th>
                     <th>Delete?</th>
                 </tr>
                 {% for content in objects %}
@@ -43,22 +46,24 @@ function delContent(url,pk){
                     <td>
                         {{ content.coffee.name }}
                     </td>
-                    <!--<td>{{ content.quantity }}</td>-->
+                    <td>{{ content.quantity }}</td>
                     <td>{{ content.get_temp_price }}</td>
                     <td>
-                        <button onclick="delContent('{% url 'coffee:remove_coffee_of_your_content_order' content_id=content.pk%}','{{content.pk}}');"
-                                class="btn btn-default">X
-                        </button>
+                        <form action="{% url 'coffee:remove_coffee_of_your_content_order' content_id=content.id %}"
+                              method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="id" value="{{ content.id }}"/>
+                            <!--<input onclick="delContent('{% url 'coffee:remove_coffee_of_your_content_order' content_id=content.pk%}','{{content.pk}}');"-->
+                            <!--class="btn btn-default">X-->
+                            <input type="submit" class="btn btn-default" value="X"/>
+                        </form>
                     </td>
                 </tr>
                 {% endfor %}
             </table>
         </div>
     </div>
-</div>
 
-<br/>
-<div class="col-xs-12">
     <div class="panel panel-default">
         <div class="panel-body">
             <form action="" method="post">
@@ -68,7 +73,46 @@ function delContent(url,pk){
             </form>
         </div>
     </div>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <table class="coffee-table all_user">
+                <tr>
+                    <th>User</th>
+                    <th>Price</th>
+                    <th>Coffee</th>
+                    <th>Quantity</th>
+                </tr>
+                {% for key, value in order_by_users.items %}
+                <tr>
+                    <td rowspan={{ value.number_coffee }}>
+                        {{ key }}
+                    </td>
+                    <td rowspan={{ value.number_coffee }}>
+                        {{ value.total_paid }}
+                    </td>
+                    <td>
+                        {{ value.coffee.keys.0 }}
+                    </td>
+                    <td>
+                        {{ value.coffee.values.0 }}
+                    </td>
+                </tr>
+                {% for c,q in value.coffee.items %}
+                {% if not forloop.first %}
+                <tr>
+
+                    <td>
+                        {{ c }}
+                    </td>
+                    <td>
+                        {{ q }}
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+                {% endfor %}
+            </table>
+        </div>
+    </div>
 </div>
-<br/>
-<a role="button" class="btn btn-default pull-left" href="{% url 'coffee:list_order' %}">Home</a>
 {% endblock content_main %}

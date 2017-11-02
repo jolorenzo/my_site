@@ -1,9 +1,102 @@
-<h1>{{ question.question_text }}</h1>
+{% extends "base.html" %}
+{% load static %}
+{% load coffee_tags %}
+{% block page_title %}
+RESULTS OF ORDER N°{{ order_id }}
+{% endblock page_title %}
+{% block title %}
+RESULTS OF ORDER N°{{ order_id }}
+{% endblock title %}
+{% block sub_title %}{% endblock sub_title %}
+{% block extrasjs %}
+<script type="text/javascript">
+function delContent(url,pk){
+    $.ajax({
+        type:"POST",
+        url:url,
+        data:"csrfmiddlewaretoken="+getCookie('csrftoken'),
+        success: function (data) {
+            console.log(data);
+            $("#c"+pk+" .import").show();
+            $("#c"+pk+" button").prop('disabled', false);
+        },
+        error: function (data) {console.log(data);$("#c"+pk+" button").prop('disabled', false);}
+    });
+}
 
-<ul>
-{% for choice in question.choice_set.all %}
-    <li>{{ choice.choice_text }} -- {{ choice.votes }} vote{{ choice.votes|pluralize }}</li>
-{% endfor %}
-</ul>
 
-<a href="{% url 'coffee:detail' question.id %}">Vote again?</a>
+</script>
+{%endblock%}
+
+{% block extrahead %}
+{% endblock extrahead %}
+
+{% block content_main %}
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<div class="col-xs-12">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <table class="coffee-table">
+                <tr>
+                    <th>User</th>
+                    <th>Price (€)</th>
+                </tr>
+                {% for content in order_by_users %}
+                <tr>
+                    <td>
+                        {{ content.user__username}}
+                    </td>
+                    <td>
+                        {{ content.total }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    <br/>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <table class="coffee-table">
+                <tr>
+                    <th>Coffee</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                </tr>
+                {% for content in order_by_coffee %}
+                <tr>
+                    <td>
+                        {{ content.coffee__name }}
+                    </td>
+
+                    <td bgcolor="{% if  content.total_quantity|quantity_is_correct %}#00FF00{% else %}#FF0000{% endif %}">
+                        {{ content.total_quantity }}
+                    </td>
+
+                    <td>
+                        {{ content.total_price }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    <br/>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <table class="coffee-table">
+                <tr>
+                    <th>Total price</th>
+                </tr>
+                <tr>
+                    <td>
+                        {{ total_paid.total }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock content_main %}

@@ -1,36 +1,39 @@
 {% extends "base.html" %}
 {% load static %}
 {% block page_title %}
-CHOIX DU CAFE
+LIST OF COFFEE ORDERS
 {% endblock page_title %}
-{% block extrasjs %}
-{%endblock%}
+{% block title %}
+LIST OF COFFEE ORDERS
+{% endblock title %}
+{% block sub_title %}{% endblock sub_title %}
 
 {% block extrahead %}
 {% endblock extrahead %}
 
 {% block content_main %}
-<h1>List of coffee orders</h1>
-
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-
 <div class="col-xs-12">
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
     <div class="panel panel-default">
         <div class="panel-body">
-            <table>
+            <table class="coffee-table">
                 {% for order in objects %}
                 <tr>
                     <td>
                         <a href="{% url 'coffee:list_content_order' order.pk %}">Order n°{{ order.pk }}</a>
                     </td>
                     <td>{% if order.open %}open{% else %}close{% endif %}</td>
+                    {%if perms.coffee.change_order %}
+                    <td>
+                        <a href="{% url 'coffee:results_order' order.pk %}">Results</a>
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </table>
         </div>
     </div>
+    <a role="button" class="btn btn-default pull-left" href="{% url 'coffee:list_coffee' %}">List of coffee</a>
 </div>
-
-<br/>
-<a role="button" class="btn btn-default pull-left" href="{% url 'coffee:list_coffee' %}">List of coffee</a>
 {% endblock content_main %}

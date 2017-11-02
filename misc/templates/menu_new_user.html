@@ -1,0 +1,33 @@
+{% load  static %}
+{% load i18n %}
+{% load tags %}
+{% if user.get_functional_groups_waiting_for_validation.exists %}
+<li class="forced">
+    <a href="{% url 'admin:oidc_customization_functionalgroup_changelist' %}?validated__exact=0" class="text-yellow">
+        <span class="hidden-sm hidden-md hidden-lg">{% blocktrans count counter=user.get_functional_groups_waiting_for_validation.count %}A functional group validation is pending{% plural %}Functional groups validation are pending{% endblocktrans %}</span>
+        <span class="fa fa-users"
+              aria-hidden="true"
+              title="{% blocktrans count counter=user.get_functional_groups_waiting_for_validation.count %}A functional group validation is pending{% plural %}Functional groups validation are pending{% endblocktrans %}"></span>
+        <span class="glyphicon glyphicon-plus glyphicon-exp" aria-hidden="true"><span style="font-size: 1.4em;"><b>{{ user.get_functional_groups_waiting_for_validation.count }}</b></span></span>
+    </a>
+</li>
+{% endif %}
+{% if user.get_users_waiting_for_validation.exists %}
+<li class="forced">
+    <a href="{% url 'admin:oidc_customization_myuser_changelist' %}?groups__id__exact=2" class="text-yellow">
+        <span class="hidden-sm hidden-md hidden-lg">{% blocktrans count counter=user.get_users_waiting_for_validation.count %}An account validation is pending{% plural %}Accounts validation are pending{% endblocktrans %}</span>
+        <span class="fa fa-user"
+              aria-hidden="true"
+              title="{% blocktrans count counter=user.get_users_waiting_for_validation.count %}An account validation is pending{% plural %}Accounts validation are pending{% endblocktrans %}"></span>
+        <span class="glyphicon glyphicon-plus glyphicon-exp" aria-hidden="true"><span style="font-size: 1.4em;"><b>{{ user.get_users_waiting_for_validation.count }}</b></span></span>
+    </a>
+</li>
+{% endif %}
+{% if user.has_not_requested_an_account %}
+<li class="forced">
+    <a href="{% url 'no_oidc:register' %}" class="text-yellow">
+        <span class="glyphicon glyphicon-edit" title="Registration not completed"></span>
+        <span class="hidden-xs hidden-sm">Registration not completed</span>
+    </a>
+</li>
+{% endif %}

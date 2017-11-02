@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import datetime
+from datetime import datetime
 
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.query_utils import Q
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _, pgettext_lazy
+from django.contrib.auth.models import Group
 
 from mysite import settings
 
@@ -63,6 +67,11 @@ class Coffee(models.Model):
         url_coffee = "https://www.nespresso.com/pro/fr/fr/product/" + name_modified + "-boite-capsule-cafe"
         return url_coffee
 
+    def get_price_per_box(self):
+        capsule_by_box = 50
+        price_per_box = (self.price * capsule_by_box)
+        return price_per_box
+
     def __str__(self):
         return self.name
 
@@ -73,6 +82,11 @@ class Order(models.Model):
     paid_price = models.FloatField(default=0)
     open = models.BooleanField(default=False)
     archived = models.BooleanField(default=False)
+
+    def est_recent(self):
+        """ Retourne True si l'order a été publié dans
+            les 30 derniers jours """
+        return (datetime.now() - self.ordered_date).days < 30 and self.ordered_date < datetime.now()
 
     def __str__(self):
         return "Order %i" % self.pk
@@ -86,9 +100,18 @@ class ContentOrder(models.Model):
     quantity = models.PositiveIntegerField(default=1)
 
     def get_temp_price(self):
-        capsule_by_box = 50
-        temp_price = (self.coffee.price * self.quantity * capsule_by_box)
+        temp_price = (self.coffee.price * self.quantity)
         return temp_price
+
+    def quantity_is_correct(total_quantity):
+        quantity_by_box = 50
+
+        if [total_quantity % quantity_by_box == 0]:  # that line is added by me
+            is_divisible = True
+        else:
+            is_divisible = False
+
+        return is_divisible
 
     def __str__(self):
         return "%s wants %i %s" % (
@@ -96,3 +119,63 @@ class ContentOrder(models.Model):
             int(self.quantity),
             self.coffee,
         )
+
+
+class News(models.Model):
+    class Meta:
+        ordering = ["-end", "-start", ]
+        verbose_name = _('News')
+        verbose_name_plural = pgettext_lazy('plural form', 'News')
+
+    """ This class is made to store the date of the last firewall(s) update"""
+    title = models.TextField(null=False, blank=True)
+    body = models.TextField(null=False, blank=False)
+    severity = models.IntegerField(
+        _('severity'),
+        choices=(
+            (1, "success"),
+            (2, "info"),
+            (3, "warning"),
+            (4, "danger"),
+        ),
+        default=2)
+    start = models.DateTimeField(null=True, blank=True)
+    end = models.DateTimeField(null=True, blank=True)
+    target_groups = models.ManyToManyField(
+        Group,
+        verbose_name=_(u'target_groups'),
+        blank=True,
+    )
+
+    def severity_str(self):
+        return [c for i, c in News._meta.get_field('severity').choices if i == self.severity][0]
+
+    def __unicode__(self):
+        return "News(#%i) %s" % (
+            self.pk,
+            self.title if len(self.title + "") > 0 else self.body[:100],
+        )
+
+    def as_html(self):
+        if self.title:
+            return "<b>%(title)s %(two_dots)s</b>%(body)s" % {
+                'title': self.title.encode('ascii', 'xmlcharrefreplace'),
+                'two_dots': _(':'),
+                'body': self.body.encode('ascii', 'xmlcharrefreplace'),
+            }
+        return self.body
+
+    def clean(self):
+        if self.start is not None and self.end is not None and self.end <= self.start:
+            raise ValidationError(_('End datetime can only be after start datetime'))
+        if self.start is None and self.end is None:
+            raise ValidationError(_('Please either select a start datetime or an end datetime'))
+
+    @staticmethod
+    def objects_active():
+        return News.objects. \
+            filter(News.get_active_filter())
+
+    @staticmethod
+    def get_active_filter():
+        return (Q(start=None) | Q(start__lt=timezone.now())) & (Q(end=None) | Q(end__gt=timezone.now()))

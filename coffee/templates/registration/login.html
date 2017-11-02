@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block page_title %}
+SIGN IN
+{% endblock page_title %}
+{% block title %}
+SIGN IN
+{% endblock title %}
+{% block sub_title %}{% endblock sub_title %}
+
+{% block content_main %}
+<div class="col-xs-12">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            {% if form.errors %}
+
+            <p>Your username and password didn't match. Please try again.</p>
+            {% endif %}
+
+            {% if next %}
+            {% if user.is_authenticated %}
+
+            <p>Your account doesn't have access to this page. To proceed,
+                please login with an account that has access.</p>
+            {% else %}
+
+            <p>Please login to see this page.</p>
+            {% endif %}
+            {% endif %}
+            {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+
+                <p class="bs-component">
+                <table>
+                    <tr>
+                        <td>{{ form.username.label_tag }}</td>
+                        <td>{{ form.username }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ form.password.label_tag }}</td>
+                        <td>{{ form.password }}</td>
+                    </tr>
+                </table>
+                </p>
+                <p class="bs-component">
+                <center>
+                    <input class="btn btn-success btn-sm" type="submit" value="login"/>
+                </center>
+                </p>
+                <p class="buttons">
+                    <a href="/accounts/password_reset/" title="Reset password">Lost password</a> |
+                    <a href="/accounts/signup/" title="Ask for an account">Request account</a>
+                </p>
+                <input type="hidden" name="next" value="{{ next }}"/>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+
+
+<script>
+{% if not user.is_authenticated %}
+$("ul.nav.navbar-nav.navbar-right").css("display","none");
+{% endif %}
+
+
+
+
+
+</script>
+
+{% endblock %}

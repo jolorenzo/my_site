@@ -1,0 +1,251 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{% load  static %}
+{% load i18n %}
+{% load news_filters %}
+{% load additional_tags %}
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <meta charset="utf-8">
+    <!--<meta http-equiv="refresh" content="2"><!---->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>{% block page_title %}{% endblock page_title %}</title>
+    {% block extrastyle %}{% endblock extrastyle %}
+    <link rel="stylesheet" type="text/css" href="{% static '/css/style.css' %}"/>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"/>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="{%  static 'js/utils.js' %}"></script>
+    {% block extrahead %}{% endblock extrahead %}
+    {% block extrasjs %}{% endblock extrasjs %}
+</head>
+<body>
+	<!-- Wrap all page content here -->
+	<div id="wrap">
+
+	  <!-- Fixed navbar -->
+	  <nav class="navbar navbar-default navbar-ifb navbar-fixed-top">
+	    <!--<div class="container-fluid">-->
+            <!--IFB Bioinformatics Cloud-->
+        <!--</div>-->
+	    <div class="container-fluid">
+	      <!-- Brand and toggle get grouped for better mobile display -->
+	      <div class="navbar-header">
+	        <a class="navbar-brand" href="/">
+				<img src="{%  static 'images/ifb-logo_2.png' %}" class="img-responsive"/>
+			</a>
+	        <a class="navbar-brand" href="/">
+                <span>French Institute of Bioinformatics</span>
+			</a>
+	        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+	          <span class="sr-only">Toggle navigation</span>
+	          <span class="icon-bar"></span>
+	          <span class="icon-bar"></span>
+	          <span class="icon-bar"></span>
+	        </button>
+	      </div>
+
+	      <!-- Collect the nav links, forms, and other content for toggling -->
+	      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+	        <ul class="nav navbar-nav navbar-brand-name">
+	            <a href="/">
+                    French Institute of Bioinformatics
+                </a>
+	        </ul>
+	        <ul class="nav navbar-nav">
+            	{% block nav %}
+			  	{% include 'menu_bs.html' with request=request %}
+				{% endblock nav %}
+            	{% block extra_nav %}
+            	{% endblock extra_nav %}
+	        </ul>
+	        <ul class="nav navbar-nav navbar-right">
+            	{% block extra_nav_right %}
+            	{% endblock extra_nav_right %}
+                {% include "menu_new_user.html" %}
+			  	{% include 'menu_bs_right.html' with request=request  %}
+	        </ul>
+	      </div><!-- /.navbar-collapse -->
+	    </div><!-- /.container-fluid -->
+	  </nav>
+      {% if user.is_superuser or user.is_staff %}
+        <span class="logged-in-as-overlay">{% blocktrans with username=user.username %}Logged in as <i>{{username}}</i>{% endblocktrans %}&nbsp;</span>
+      {% endif%}
+
+	  <!-- Begin page content -->
+	  <div class="container-fluid">
+        <div class="row"id="header-inter">
+            <img class="imageblock-image" src="{%  static 'images/ifb_header_cloud_.jpg'%}">
+        </div>
+        {% block page_content_begin %}
+        {% endblock page_content_begin %}
+    {% block header %}
+	    <div class="page-header">
+	      <h1 id="pageTitle" class="{% block title_class%}{% endblock title_class%}">{% block title %}{% endblock title %}</h1>
+            {% captureas sub_title %}{% spaceless %}{% block sub_title %}{% endblock %}{% endspaceless %}{% endcaptureas %}
+            {% if sub_title %}<h4>{{sub_title}}</h4>{% endif %}
+	    </div>
+    {% endblock header %}
+
+  <!--
+	  #####################################################################################################################################
+	  #####################################################################################################################################
+	  #####################################################################################################################################
+	  -->
+	  <div class="content row" id="main">
+		  {% block content %}
+          {% captureas c_m %}{% spaceless %}{% block content_main %}{% endblock %}{% endspaceless %}{% endcaptureas %}
+		  {% captureas c_r %}{% spaceless %}{% block content_right %}{% endblock %}{% endspaceless %}{% endcaptureas %}
+		  {% captureas c_l %}{% spaceless %}{% block content_left %}{% endblock %}{% endspaceless %}{% endcaptureas %}
+          {% if c_l or messages %}
+          <div id="content-left" class="col-lg-2 col-xs-3">
+              {% block messages %}
+              {% if messages %}
+              {% captureas msg_info %}{% spaceless %}
+              {% for message in messages %}
+              {% if message.tags == 'info' %}
+              <p {% if message.tags %} class="text-{{ message.tags }}" {% endif %}>{{ message }}</p>
+              {% endif %}
+              {% endfor %}
+              {% endspaceless %}{% endcaptureas %}
+
+              {% captureas msg_debug %}{% spaceless %}
+              {% for message in messages %}
+              {% if message.tags == 'debug' %}
+              <p {% if message.tags %} class="text-{{ message.tags }}" {% endif %}>{{ message }}</p>
+              {% endif %}
+              {% endfor %}
+              {% endspaceless %}{% endcaptureas %}
+
+              {% captureas msg_error %}{% spaceless %}
+              {% for message in messages %}
+              {% if message.tags == 'error' %}
+              <p {% if message.tags %} class="text-{{ message.tags }}" {% endif %}>{{ message }}</p>
+              {% endif %}
+              {% endfor %}
+              {% endspaceless %}{% endcaptureas %}
+
+              {% captureas msg_success %}{% spaceless %}
+              {% for message in messages %}
+              {% if message.tags == 'success' %}
+              <p {% if message.tags %} class="text-{{ message.tags }}" {% endif %}>{{ message }}</p>
+              {% endif %}
+              {% endfor %}
+              {% endspaceless %}{% endcaptureas %}
+
+              {% captureas msg_warning %}{% spaceless %}
+              {% for message in messages %}
+              {% if message.tags == 'warning' %}
+              <p {% if message.tags %} class="text-{{ message.tags }}" {% endif %}>{{ message }}</p>
+              {% endif %}
+              {% endfor %}
+              {% endspaceless %}{% endcaptureas %}
+
+              {% captureas msg_others %}{% spaceless %}
+              {% for message in messages %}
+              {% if message.tags == 'info' and message.tags == 'debug' and message.tags == 'error' and message.tags == 'success' and message.tags == 'warning' %}
+              <p {% if message.tags %} class="text-{{ message.tags }}" {% endif %}>{{ message }}</p>
+              {% endif %}
+              {% endfor %}
+              {% endspaceless %}{% endcaptureas %}
+
+              {% if msg_debug %}
+              <div class="panel panel-default panel-danger">
+                  <div class="panel-heading">Debug</div>
+                  <div class="panel-body">{{msg_debug}}</div>
+              </div>
+              {% endif %}
+              {% endif %}
+              {% if msg_error %}
+              <div class="panel panel-default panel-danger">
+                  <div class="panel-heading">Error</div>
+                  <div class="panel-body">{{msg_error}}</div>
+              </div>
+              {% endif %}
+              {% if msg_success %}
+              <div class="panel panel-default panel-success">
+                  <div class="panel-heading">Information</div>
+                  <div class="panel-body">{{msg_success}}</div>
+              </div>
+              {% endif %}
+              {% if msg_info %}
+              <div class="panel panel-default panel-info">
+                  <div class="panel-heading">Information</div>
+                  <div class="panel-body">{{msg_info}}</div>
+              </div>
+              {% endif %}
+              {% if msg_warning %}
+              <div class="panel panel-default panel-warning">
+                  <div class="panel-heading">Warning</div>
+                  <div class="panel-body">{{msg_warning}}</div>
+              </div>
+              {% endif %}
+              {% if msg_others %}
+              <div class="panel panel-default panel-danger">
+                  <div class="panel-heading">Others</div>
+                  <div class="panel-body">{{msg_others}}</div>
+              </div>
+              {% endif %}
+              {% endblock %}
+              {{c_l}}
+          </div>
+          {% endif %}
+          {% if c_m or user|has_news %}
+          <div id="content-main" class="
+          col-xs-{% if c_l and c_r or messages and c_r %}6{% else %}{% if c_l or messages or c_r %}9{% else %}12{% endif %}{% endif %}
+          col-lg-{% if c_l and c_r or messages and c_r %}8{% else %}{% if c_l or messages or c_r %}10{% else %}12{% endif %}{% endif %}">
+              {%if user|has_news and not request|is_url_to:'misc:news_list' %}
+              <div id="myCarousel" class="carousel slide news" data-ride="carousel">
+                  <!-- Indicators -->
+                  {%if user|has_many_news %}
+                  <ol class="carousel-indicators">
+                      {% for i, o in user|get_news_with_count_range %}
+                        <li data-target="#myCarousel" data-slide-to="{{i}}" class="{% if forloop.first %}active {% endif %}text-{{o.severity_str}}"></li>
+                      {% endfor %}
+                  </ol>
+                  {%endif%}
+
+                  <!-- Wrapper for slides -->
+                  <div class="carousel-inner" role="listbox">
+                      {% for o in user|get_news %}
+                        <div class="item{% if forloop.first %} active{% endif %}">
+                            {{o|news_as_div}}
+                        </div>
+                      {% endfor %}
+                  </div>
+                </div>
+              {%endif%}
+              <div class="row">{{ c_m }}</div>
+          </div>
+          {% endif %}
+          {% if c_r %}
+          <div id="content-right" class="col-sm-2 col-xs-3 col-lg-1"><div class="">{{ c_r }}</div></div>
+          {% endif %}
+		  {% endblock content %}
+	  </div>
+        {% block page_content_end %}
+        {% endblock page_content_end %}
+  <!--
+	  #####################################################################################################################################
+	  #####################################################################################################################################
+	  #####################################################################################################################################
+	  -->
+		</div>
+		<div id="push"></div>
+	</div>
+
+	<div id="footer">
+      <div class="container-fluid">
+    {% block footer %}
+    {% endblock footer %}
+      </div>
+    </div>
+{% block modal %}
+{% endblock modal %}
+  </body>
+</html>
