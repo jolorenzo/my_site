@@ -9,7 +9,7 @@ html5lib==1.0b8
 rdflib==4.2.1
 psycopg2==2.6.2
 django_tools==0.30.0
-requests==2.11.1
+requests==2.20.0
 pytz==2016.7
 django-registration==2.2
 configparser==3.5.0
